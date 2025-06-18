@@ -254,20 +254,16 @@ if __name__ == "__main__":
     endnodes = test_nodes[-1] + 1
     adj_test = adj_test[0:endnodes, 0:endnodes]
     embedding = inference(model, minibatch, model_eval, adj_test)
-    embedd_in = spectral_embedding_eig(adj_test,None,use_feature=False,embedding_norm=None,adj_norm=True,eig_julia=False)
-    TopEig, TopEdgeList, TopNodeList, nodeScore = CIRSTAG(embedd_in, embedding.cpu().numpy(), k=50, num_eigs=2,weighted=True,sparse=True)
+    TopEig, TopEdgeList, TopNodeList, nodeScore = CIRSTAG(adj_test, embedding.cpu().numpy(), k=50, num_eigs=2,weighted=True,sparse=True, use_eig=True, M=48)
   
     
 
     os.makedirs(save_path, exist_ok=True)
-    
-    with open(os.path.join(save_path,'SAGMAN_Rank_EdgeList.pkl'), 'wb') as f:
+    with open(os.path.join(save_path,'CIRSTAG_Rank_EdgeList.pkl'), 'wb') as f:
         pickle.dump(TopEdgeList, f)
-
-    with open(os.path.join(save_path,'SAGMAN_Rank_NodeList.pkl'), 'wb') as f:
+    with open(os.path.join(save_path,'CIRSTAG_Rank_NodeList.pkl'), 'wb') as f:
         pickle.dump(TopNodeList, f)
-    
-    print("SAGMAN Rank EdgeList and NodeList saved to: ", save_path)
+    print("CIRSTAG Rank EdgeList and NodeList saved to: ", save_path)
 
 
 

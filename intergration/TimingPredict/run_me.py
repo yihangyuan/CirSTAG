@@ -74,7 +74,7 @@ def is_symmetric(matrix, tol=1e-10):
     # Check if all elements are close to zero within the tolerance
     return np.all(np.abs(diff.data) < tol)
 
-def test_pertubation_pin_cap(dataset,loaded_SAGMAN_dict_NodeList, name, model, baseline, scal=0.1, f=0.05, drop=True):
+def test_pertubation_pin_cap(dataset,loaded_CIRSTAG_dict_NodeList, name, model, baseline, scal=0.1, f=0.05, drop=True):
 
     dataset_unstable = copy.deepcopy(dataset)
 
@@ -84,7 +84,7 @@ def test_pertubation_pin_cap(dataset,loaded_SAGMAN_dict_NodeList, name, model, b
     g = dataset_unstable[name][0]
     ts = dataset_unstable[name][1]
     print("Design: " + name )
-    length = len(loaded_SAGMAN_dict_NodeList[name]) # node number
+    length = len(loaded_CIRSTAG_dict_NodeList[name]) # node number
     num = int(length * f)
 
 
@@ -98,7 +98,7 @@ def test_pertubation_pin_cap(dataset,loaded_SAGMAN_dict_NodeList, name, model, b
 
             while True:
                 count_unstable += 1
-                index = loaded_SAGMAN_dict_NodeList[name][count_unstable]
+                index = loaded_CIRSTAG_dict_NodeList[name][count_unstable]
                 # (index in ts['output_nodes']) or
                 if  (index in ts['output_nodes']) or(index in ts['pi_nodes']) or (index in ts['po_nodes']):   
                     continue
@@ -110,7 +110,7 @@ def test_pertubation_pin_cap(dataset,loaded_SAGMAN_dict_NodeList, name, model, b
 
             while True:
                 count_stable -= 1
-                index = loaded_SAGMAN_dict_NodeList[name][count_stable]
+                index = loaded_CIRSTAG_dict_NodeList[name][count_stable]
                 # (index in ts['output_nodes']) or 
                 if  (index in ts['output_nodes']) or(index in ts['pi_nodes']) or (index in ts['po_nodes']):
                     continue
@@ -121,8 +121,8 @@ def test_pertubation_pin_cap(dataset,loaded_SAGMAN_dict_NodeList, name, model, b
 
     else:
         for i in range(num):
-            unstable.append(loaded_SAGMAN_dict_NodeList[name][i])
-            stable.append(loaded_SAGMAN_dict_NodeList[name][length - i - 1])
+            unstable.append(loaded_CIRSTAG_dict_NodeList[name][i])
+            stable.append(loaded_CIRSTAG_dict_NodeList[name][length - i - 1])
 
     
     for node in unstable:
@@ -204,7 +204,7 @@ select = 0
 available_data = available_data[select].split()
 k = available_data[0] 
 print("Test on: " + available_data[0])
-SAGMAN_dict_NodeList = {key: [] for key in available_data}
+CIRSTAG_dict_NodeList = {key: [] for key in available_data}
 
 with torch.no_grad():
 
@@ -221,11 +221,9 @@ with torch.no_grad():
         adj_net_in = adj_dgl2scipy(g.adj(etype='net_in'))
         adj_total = adj_net_in + adj_net_out + adj_cell_out + adj_cell_out.T
         print("is symmetric ",is_symmetric(adj_total))
-        # embedd_in = spectral_embedding(adj_total,g.ndata['nf'].cpu().numpy().copy(),use_feature=True)
-        embedd_in = spectral_embedding(adj_total,None,use_feature=False)
         start_time = time.time() 
-        TopEig, TopEdgeList, TopNodeList, _ = CIRSTAG(embedd_in, pred.cpu().numpy(), k=50, num_eigs=4,weighted=True,sparse=True)
-        SAGMAN_dict_NodeList[k].append(TopNodeList)
+        TopEig, TopEdgeList, TopNodeList, _ = CIRSTAG(adj_total, pred.cpu().numpy(), k=50, num_eigs=4,weighted=True,sparse=True, use_eig=False)
+        CIRSTAG_dict_NodeList[k].append(TopNodeList)
         torch.cuda.synchronize()
         time_t = time.time()
         truth = g.ndata['n_atslew'][:, :4]
@@ -240,16 +238,16 @@ destination_path = os.path.join(folder_name, os.path.basename(current_file))
 shutil.copy(current_file, destination_path)
 os.chdir(folder_name)
 
-save_name = 'SAGMAN_dict_NodeList.pkl'
+save_name = 'CIRSTAG_dict_NodeList.pkl'
 
 with open(save_name, 'wb') as f:
-    pickle.dump(SAGMAN_dict_NodeList, f)
+    pickle.dump(CIRSTAG_dict_NodeList, f)
 
-for key, value in SAGMAN_dict_NodeList.items():
+for key, value in CIRSTAG_dict_NodeList.items():
     if not isinstance(value[0], list):
-        SAGMAN_dict_NodeList[key] = value[0].tolist() 
+        CIRSTAG_dict_NodeList[key] = value[0].tolist() 
     else:
-        SAGMAN_dict_NodeList[key] = value[0]
+        CIRSTAG_dict_NodeList[key] = value[0]
         
 
 
@@ -264,7 +262,7 @@ with torch.no_grad():
     baseline[k] = (net_delays, cell_delays, atslew)
         
 
-result_unstable, result_stable = test_pertubation_pin_cap(data, SAGMAN_dict_NodeList, k,model, baseline, scal=args.s, f=args.f)
+result_unstable, result_stable = test_pertubation_pin_cap(data, CIRSTAG_dict_NodeList, k,model, baseline, scal=args.s, f=args.f)
 
 filename = "./scal{}_f{}_cap_AS.csv".format(args.s, args.f)
 

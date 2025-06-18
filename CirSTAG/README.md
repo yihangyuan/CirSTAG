@@ -39,3 +39,6 @@ To utilize CirSTAG, follow the steps outlined below:
 2. In your Python code, import the CirSTAG
 
 `from my_utils.utils import spectral_embedding,SAGMAN`
+
+
+3. Use the CirSTAG

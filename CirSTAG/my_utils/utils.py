@@ -147,8 +147,12 @@ def write_matrix(filename, matrix):
             f.write(f"{row } {col} {data}\n") 
             
             
-def CIRSTAG(data_input, data_output, k=10, num_eigs=2,weighted=True,sparse=True, M=48):
+def CIRSTAG(data_input, data_output, k=10, num_eigs=2,weighted=True,sparse=True, M=48, use_eig=False):
     
+    if use_eig:
+        data_input = spectral_embedding_eig(data_input, None,use_feature=False,embedding_norm=None,adj_norm=True,eig_julia=False)
+    else:
+        data_input = spectral_embedding(data_input, None,use_feature=False,embedding_norm=None,adj_norm=True)
     
     neighs_in, distance_in = hnsw(data_input, k,M=M)
     neighs_out, distance_out = hnsw(data_output, k,M=M)
