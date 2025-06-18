@@ -146,55 +146,8 @@ def write_matrix(filename, matrix):
         for row, col, data in zip(matrix.row, matrix.col, matrix.data):
             f.write(f"{row } {col} {data}\n") 
             
-def read_paths_from_result(filename):
-    paths = []
-    
-    with open(filename, 'r') as file:
-        for line in file:
-            line = line.strip()
-            if line == "-1":
-                # If line is "-1", store an empty list (no path)
-                paths.append([])
-            else:
-                # Split the line by commas and convert each to an integer
-                # adjust to 0-based indexing
-                path = [int(node.strip()) - 1 for node in line.split(",")]
-                paths.append(path)
-    
-    return paths
-
-def rank_nodes_by_average_distance(src_nodes, dst_nodes, distances):
-    from collections import defaultdict
-    # Initialize data structures
-    node_distances = defaultdict(list)
-    large_number = float('inf')  # Use infinity to represent unreachable paths
-    
-    # Process src_nodes, dst_nodes, and distances together
-    for src, dst, path in zip(src_nodes, dst_nodes, distances):
-        # Compute distance
-        if path:
-            distance = len(path) - 1  # Number of steps between nodes
-        else:
-            distance = large_number  # Assign large distance if path is empty
-        # Add distances to both nodes (assuming undirected graph)
-        node_distances[src].append(distance)
-        node_distances[dst].append(distance)
-    # Compute average distances
-    average_distances = {}
-    print("node_distances list length: ", len(node_distances))
-    for node, dist_list in node_distances.items():
-        # avg_distance = sum(dist_list) / len(dist_list)
-        smallest_distance = min(dist_list)
-        # average_distances[node] = avg_distance
-        average_distances[node] = smallest_distance
-    # Sort nodes by average distance from largest to smallest
-    ranked_nodes = sorted(average_distances.keys(),
-                          key=lambda node: average_distances[node],
-                          reverse=True)
-    print("ranked_nodes length: ", len(ranked_nodes))
-    return ranked_nodes
             
-def SAGMAN(data_input, data_output, k=10, num_eigs=2,weighted=True,sparse=True, M=48):
+def CIRSTAG(data_input, data_output, k=10, num_eigs=2,weighted=True,sparse=True, M=48):
     
     
     neighs_in, distance_in = hnsw(data_input, k,M=M)

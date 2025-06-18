@@ -16,7 +16,7 @@ import tee
 import pickle
 from data_graph import data_train, data_test
 from model import TimingGCN
-from my_utils.utils import spectral_embedding,spectral_embedding_eig,SAGMAN
+from my_utils.utils import spectral_embedding,CIRSTAG
 import argparse
 from scipy.sparse import coo_matrix, csr_matrix
 import copy
@@ -224,7 +224,7 @@ with torch.no_grad():
         # embedd_in = spectral_embedding(adj_total,g.ndata['nf'].cpu().numpy().copy(),use_feature=True)
         embedd_in = spectral_embedding(adj_total,None,use_feature=False)
         start_time = time.time() 
-        TopEig, TopEdgeList, TopNodeList, _ = SAGMAN(embedd_in, pred.cpu().numpy(), k=50, num_eigs=4,weighted=True,sparse=True)
+        TopEig, TopEdgeList, TopNodeList, _ = CIRSTAG(embedd_in, pred.cpu().numpy(), k=50, num_eigs=4,weighted=True,sparse=True)
         SAGMAN_dict_NodeList[k].append(TopNodeList)
         torch.cuda.synchronize()
         time_t = time.time()

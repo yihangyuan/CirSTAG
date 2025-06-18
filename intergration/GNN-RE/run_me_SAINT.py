@@ -2,7 +2,7 @@ import torch
 import pandas as pd
 # import random
 # import time
-# import os
+import os
 # import copy
 import pickle
 import argparse
@@ -11,7 +11,7 @@ import torch_geometric.transforms as T
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
-from my_utils.utils import spectral_embedding,spectral_embedding_eig,SAGMAN
+from my_utils.utils import spectral_embedding,spectral_embedding_eig,CIRSTAG
 from scipy.sparse import coo_matrix, csr_matrix
 from torch_sparse import SparseTensor
 
@@ -255,22 +255,19 @@ if __name__ == "__main__":
     adj_test = adj_test[0:endnodes, 0:endnodes]
     embedding = inference(model, minibatch, model_eval, adj_test)
     embedd_in = spectral_embedding_eig(adj_test,None,use_feature=False,embedding_norm=None,adj_norm=True,eig_julia=False)
-    TopEig, TopEdgeList, TopNodeList, nodeScore = SAGMAN(embedd_in, embedding.cpu().numpy(), k=50, num_eigs=2,weighted=True,sparse=True)
-    #改这里k=50, weighted=True, sparse=True。 在SAGMAN里面，SPF(x,4), laplacian(X, normed=False), GetRiemannianDist(X, X, num_eigs=2)
+    TopEig, TopEdgeList, TopNodeList, nodeScore = CIRSTAG(embedd_in, embedding.cpu().numpy(), k=50, num_eigs=2,weighted=True,sparse=True)
+  
     
 
     os.makedirs(save_path, exist_ok=True)
     
     with open(os.path.join(save_path,'SAGMAN_Rank_EdgeList.pkl'), 'wb') as f:
-        # Use pickle.dump() to save the dictionary to the file
         pickle.dump(TopEdgeList, f)
 
     with open(os.path.join(save_path,'SAGMAN_Rank_NodeList.pkl'), 'wb') as f:
-        # Use pickle.dump() to save the dictionary to the file
         pickle.dump(TopNodeList, f)
     
     print("SAGMAN Rank EdgeList and NodeList saved to: ", save_path)
-    # train(train_phases, model, minibatch, minibatch_eval, model_eval, train_params['eval_val_every'])
 
 
 
